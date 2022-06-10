@@ -110,38 +110,6 @@ CPhysicalHashJoin::CreateHashRedistributeRequests(CMemoryPool *mp)
 	}
 
 	m_pdrgpdsRedistributeRequests = GPOS_NEW(mp) CDistributionSpecArray(mp);
-	const ULONG ulExprs =
-		std::min((ULONG) GPOPT_MAX_HASH_DIST_REQUESTS, pdrgpexpr->Size());
-	if (1 < ulExprs)
-	{
-		for (ULONG ul = 0; ul < ulExprs; ul++)
-		{
-			CExpressionArray *pdrgpexprCurrent =
-				GPOS_NEW(mp) CExpressionArray(mp);
-			CExpression *pexpr = (*pdrgpexpr)[ul];
-			pexpr->AddRef();
-			pdrgpexprCurrent->Append(pexpr);
-
-			IMdIdArray *opfamilies = nullptr;
-			if (GPOS_FTRACE(EopttraceConsiderOpfamiliesForDistribution))
-			{
-				GPOS_ASSERT(nullptr != m_hash_opfamilies);
-				opfamilies = GPOS_NEW(mp) IMdIdArray(mp);
-				IMDId *opfamily = (*m_hash_opfamilies)[ul];
-				opfamily->AddRef();
-				opfamilies->Append(opfamily);
-			}
-
-			// add a separate request for each hash join key
-
-			// TODO:  - Dec 30, 2011; change fNullsColocated to false when our
-			// distribution matching can handle differences in NULL colocation
-			CDistributionSpecHashed *pdshashedCurrent =
-				GPOS_NEW(mp) CDistributionSpecHashed(
-					pdrgpexprCurrent, true /* fNullsCollocated */, opfamilies);
-			m_pdrgpdsRedistributeRequests->Append(pdshashedCurrent);
-		}
-	}
 	// add a request that contains all hash join keys
 	pdrgpexpr->AddRef();
 	if (GPOS_FTRACE(EopttraceConsiderOpfamiliesForDistribution))
