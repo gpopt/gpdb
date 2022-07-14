@@ -360,6 +360,35 @@ CPhysicalSequence::PrsDerive(CMemoryPool *,	 //mp
 		CRewindabilitySpec(CRewindabilitySpec::ErtNone, motion_hazard);
 }
 
+CEnfdProp::EPropEnforcingType
+CPhysicalSequence::EpetDistribution(CExpressionHandle &exprhdl,
+							const CEnfdDistribution *ped) const
+{
+	GPOS_ASSERT(nullptr != ped);
+
+	// get distribution delivered by the physical node
+	CDistributionSpec *pds = CDrvdPropPlan::Pdpplan(exprhdl.Pdp())->Pds();
+	if (ped->FCompatible(pds))
+	{
+		// required distribution is already provided
+		return CEnfdProp::EpetUnnecessary;
+	}
+
+	CDistributionSpec *pdsProducer = exprhdl.Pdpplan(0)->Pds();
+	CDistributionSpec *pdsConsumer = exprhdl.Pdpplan(1)->Pds();
+	BOOL replicatedProducer =
+		CDistributionSpec::EdtStrictReplicated == pdsProducer->Edt() ||
+		CDistributionSpec::EdtTaintedReplicated == pdsProducer->Edt();
+	BOOL randomizedConsumer =
+		CDistributionSpec::EdtStrictRandom == pdsConsumer->Edt();
+	if (replicatedProducer && randomizedConsumer)
+	{
+		return CEnfdProp::EpetProhibited;
+	}
+
+	// required distribution will be enforced on Assert's output
+	return CEnfdProp::EpetRequired;
+}
 
 //---------------------------------------------------------------------------
 //	@function:

@@ -129,6 +129,11 @@ public:
 	// Enforced Properties
 	//-------------------------------------------------------------------------------------
 
+	// return distribution property enforcing type for this operator
+	CEnfdProp::EPropEnforcingType EpetDistribution(
+		CExpressionHandle &exprhdl,
+		const CEnfdDistribution *ped) const override;
+
 	// return order property enforcing type for this operator
 	CEnfdProp::EPropEnforcingType EpetOrder(
 		CExpressionHandle &exprhdl, const CEnfdOrder *peo) const override;
